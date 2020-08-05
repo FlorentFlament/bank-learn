@@ -41,6 +41,8 @@ class Corpus:
         self.__init_corpus(corpus_fname)
 
     # Commands
+    ##########
+
     def c_save_prediction(self, filename):
         """Overview command"""
         pred = self.__model.predict(self.__corpus_vec)
@@ -57,14 +59,65 @@ class Corpus:
         for c,v in sorted(percat.items(), key=lambda x:x[1]):
             print("{:<10} {}".format(round(v,2), c))
 
+    def c_list_category(self, category):
+        pred = self.__model.predict(self.__corpus_vec)
+        percat = {}
+        for x,y in zip(self.__corpus_str, pred):
+            c = percat.setdefault(y, [])
+            c.append(x)
+        for l in percat[category]:
+            print(l)
+
+
+
+def help():
+    msg="""h             Display this help message
+o             Display an overview of the expenses / incomes per category
+p out_fname   Write corpus with predicted categories appended to out_fname file
+l category    List entries in category
+q             Quit"""
+    print(msg)
+
 training_fname = sys.argv[1]
 corpus_fname   = sys.argv[2]
-prediction_fname = sys.argv[3]
 
 corp = Corpus(training_fname, corpus_fname)
-cmd = None
+cmd = 'o'
 while cmd != 'q':
-    ln = input("> ").split()
-    cmd = ln[0]
-    if cmd == 'o':
+    if cmd == '':
+        pass
+    elif cmd == 'o':
+        print("*** Overview")
         corp.c_overview()
+    elif cmd == 'p':
+        try:
+            out_fname = ln[1]
+            print("*** Writing predictions to {}".format(out_fname))
+            corp.c_save_prediction(out_fname)
+        except IndexError:
+            print("*** argment out_fname missing")
+            help()
+    elif cmd == 'l':
+        try:
+            category = ln[1]
+            print("*** Listing items in category {}".format(category))
+            corp.c_list_category(category)
+        except IndexError:
+            print("*** argment category missing")
+            help()
+        except KeyError:
+            print("*** wrong category {}".format(category))
+            help()
+    elif cmd == 'h':
+        print("*** Help")
+        help()
+    else:
+        print("*** Unknown command: {}".format(cmd))
+        help()
+    try:
+        ln = input("> ").split()
+        cmd = ln[0]
+    except (EOFError, KeyboardInterrupt):
+        cmd = 'q'
+    except IndexError:
+        cmd = ''
