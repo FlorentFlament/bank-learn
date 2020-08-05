@@ -41,15 +41,30 @@ class Corpus:
         self.__init_corpus(corpus_fname)
 
     # Commands
-    def c_overview(self):
+    def c_save_prediction(self, filename):
         """Overview command"""
         pred = self.__model.predict(self.__corpus_vec)
-        print("date;type0;type1;details;amount;category")
-        for x,y in zip(self.__corpus_str, pred):
-            print("{};{}".format(x,y))
+        with open(filename, "w") as fd:
+            for x,y in zip(self.__corpus_str, pred):
+                fd.write("{};{}\n".format(x,y))
 
+    def c_overview(self):
+        pred = self.__model.predict(self.__corpus_vec)
+        vals = [float(s.split(';')[-1].replace(' ','')) for s in self.__corpus_str]
+        percat = {}
+        for x,y in zip(vals, pred):
+            percat[y] = percat.get(y, 0) + x
+        for c,v in sorted(percat.items(), key=lambda x:x[1]):
+            print("{:<10} {}".format(round(v,2), c))
 
 training_fname = sys.argv[1]
 corpus_fname   = sys.argv[2]
+prediction_fname = sys.argv[3]
+
 corp = Corpus(training_fname, corpus_fname)
-corp.c_overview()
+cmd = None
+while cmd != 'q':
+    ln = input("> ").split()
+    cmd = ln[0]
+    if cmd == 'o':
+        corp.c_overview()
