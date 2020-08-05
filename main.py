@@ -56,11 +56,13 @@ class Corpus:
 
     def c_overview(self):
         vals = [float(s.split(';')[-1].replace(' ','')) for s in self.__corpus]
-        percat = {}
+        total = {}
+        count = {}
         for x,y in zip(vals, self.__prediction):
-            percat[y] = percat.get(y, 0) + x
-        for c,v in sorted(percat.items(), key=lambda x:x[1]):
-            print("{:<10} {}".format(round(v,2), c))
+            total[y] = total.get(y, 0) + x
+            count[y] = count.get(y, 0) + 1
+        for c,v in sorted(total.items(), key=lambda x:x[1]):
+            print("{:<10} {:<4} {}".format(round(v,2), count[c], c))
 
     def c_list_category(self, category):
         percat = {}
