@@ -3,8 +3,13 @@ import random
 import sys
 
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_selection import VarianceThreshold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
+
+# Removing words that aren't relevant for classification
+# Introducing more noise
+STOP_WORDS=('carte', 'cb', 'du', 'facture', 'paiement')
 
 def read_lines(filename):
     lines = None
@@ -19,19 +24,19 @@ class Corpus:
         x,y = [],[]
         for l in self.__training_set:
             toks = l.split(';')
-            x.append(";".join(toks[:-1]))
+            # Keeping all fields but (date, price and category)
+            x.append(";".join(toks[1:-2]))
             y.append(toks[-1])
 
         # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html
         self.__text_clf.fit(x, y)
         self.__prediction = self.__text_clf.predict(self.__corpus)
-        print(self.__prediction)
 
     def __init__(self, training_fname, corpus_fname):
         self.__training_set = read_lines(training_fname)
         self.__corpus = read_lines(corpus_fname)
         self.__text_clf = Pipeline([
-            ('vect', CountVectorizer()),
+            ('vect', CountVectorizer(stop_words=STOP_WORDS)),
             ('clf', MultinomialNB()),
         ])
         self.__predict()
