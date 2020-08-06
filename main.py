@@ -17,16 +17,19 @@ def read_lines(filename):
         lines = [s.strip() for s in fd.readlines()]
     return lines
 
+def split_training_set(training_set):
+    x,y = [],[]
+    for l in training_set:
+        toks = l.split(';')
+        # Keeping all fields but (date, price and category)
+        x.append(";".join(toks[1:-2]))
+        y.append(toks[-1])
+    return x,y
 
 class Corpus:
     def __predict(self):
         ## TODO That doesn't need to be performed each time we call __learn
-        x,y = [],[]
-        for l in self.__training_set:
-            toks = l.split(';')
-            # Keeping all fields but (date, price and category)
-            x.append(";".join(toks[1:-2]))
-            y.append(toks[-1])
+        x,y = split_training_set(self.__training_set)
 
         # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html
         self.__text_clf.fit(x, y)
@@ -35,8 +38,14 @@ class Corpus:
     def __init__(self, training_fname, corpus_fname):
         self.__training_set = read_lines(training_fname)
         self.__corpus = read_lines(corpus_fname)
+
+        cv = CountVectorizer(
+            stop_words=STOP_WORDS,
+            token_pattern= '(?u)\\b\\w[a-zA-Z0-9_\\-\\.]+\\b',
+            ngram_range=(1,3),
+        )
         self.__text_clf = Pipeline([
-            ('vect', CountVectorizer(stop_words=STOP_WORDS)),
+            ('vect', cv),
             ('clf', MultinomialNB()),
         ])
         self.__predict()
