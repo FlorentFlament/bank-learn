@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import random
+import re
 import sys
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -11,9 +12,15 @@ from sklearn.pipeline import Pipeline
 STOP_WORDS=('carte', 'cb', 'du', 'facture', 'paiement')
 
 def read_lines(filename):
-    lines = None
+    lines = []
     with open(filename) as fd:
-        lines = [s.strip() for s in fd.readlines()]
+        l = fd.readline()
+        while l != "":
+            if re.match("^\d{4}/\d{2}/\d{2};", l):
+                # Only consider line starting with a valid date
+                # This allows skipping header, and possible comments
+                lines.append(l.strip())
+            l = fd.readline()
     return lines
 
 def split_training_set(training_set):
