@@ -3,7 +3,6 @@ import random
 import sys
 
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_selection import VarianceThreshold
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
