@@ -130,6 +130,10 @@ c item_id category   Classify item with id item_id to category
 q                    Quit"""
     print(msg)
 
+if len(sys.argv) < 3:
+    print("Syntax is: {} <training_set> <corpus_1> [<corpus_2> ...]".format(sys.argv[0]))
+    exit(1)
+
 training_fname = sys.argv[1]
 corpus_fnames  = sys.argv[2:]
 
