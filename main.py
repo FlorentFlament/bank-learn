@@ -2,6 +2,7 @@
 import random
 import re
 import sys
+import traceback
 
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
@@ -122,8 +123,8 @@ class Corpus:
 def help():
     msg="""h                    Display this help message
 o                    Display an overview of the expenses / incomes per category
-p out_fname          Write corpus with predicted categories appended to out_fname file
-t out_fname          Write training set to out_fname file
+p prediction_fname   Write corpus with predicted categories appended to prediction_fname file
+t trainingset_fname  Write training set to trainingset_fname file
 l category           List entries in category
 c item_id category   Classify item with id item_id to category
 q                    Quit"""
@@ -135,46 +136,41 @@ corpus_fnames  = sys.argv[2:]
 corp = Corpus(training_fname, corpus_fnames)
 cmd = 'o'
 while cmd != 'q':
-    if cmd == '':
-        pass
-    elif cmd == 'o':
-        print("*** Overview")
-        corp.c_overview()
-    elif cmd == 'p':
-        try:
-            out_fname = ln[1]
-            print("*** Writing predictions to {}".format(out_fname))
-            corp.c_save_prediction(out_fname)
-        except IndexError:
-            print("*** argment out_fname missing")
-            help()
-    elif cmd == 'l':
-        try:
-            category = ln[1]
-            print("*** Listing items in category {}".format(category))
-            corp.c_list_category(category)
-        except IndexError:
-            print("*** argment category missing")
-            help()
-        except KeyError:
-            print("*** wrong category {}".format(category))
-            help()
-    elif cmd == 'c':
-        item = int(ln[1])
-        cat  = ln[2]
-        print("*** Classifying {} into {}".format(item, cat))
-        corp.c_categorize(item, cat)
-    elif cmd == 't':
-        out_fname = ln[1]
-        print("*** Saving training file to {}".format(out_fname))
-        corp.c_save_training(out_fname)
-    elif cmd == 'd':
-        corp.c_debug()
-    elif cmd == 'h':
-        print("*** Help")
-        help()
-    else:
-        print("*** Unknown command: {}".format(cmd))
+    try:
+      if cmd == '':
+          pass
+      elif cmd == 'o':
+          print("*** Overview")
+          corp.c_overview()
+      elif cmd == 'p':
+          out_fname = ln[1]
+          print("*** Writing predictions to '{}'".format(out_fname))
+          corp.c_save_prediction(out_fname)
+      elif cmd == 'l':
+          category = ln[1]
+          print("*** Listing items in category '{}'".format(category))
+          corp.c_list_category(category)
+      elif cmd == 'c':
+          item = int(ln[1])
+          cat  = ln[2]
+          print("*** Classifying '{}' into '{}'".format(item, cat))
+          corp.c_categorize(item, cat)
+      elif cmd == 't':
+          out_fname = ln[1]
+          print("*** Saving training file to '{}'".format(out_fname))
+          corp.c_save_training(out_fname)
+      elif cmd == 'd':
+          print("*** Debugging")
+          corp.c_debug()
+      elif cmd == 'h':
+          print("*** Help")
+          help()
+      else:
+          print("*** Unknown command: {}".format(cmd))
+          help()
+    except Exception as e:
+        print("*** Error while processing command '{}'".format(cmd))
+        print(traceback.format_exc())
         help()
     try:
         ln = input("> ").split()
