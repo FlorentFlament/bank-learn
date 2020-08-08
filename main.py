@@ -12,8 +12,9 @@ from sklearn.pipeline import Pipeline
 # 1 transcation per line, in the following format:
 # date;<any number of fields describing a transaction>;amount
 
-# Removing words that aren't relevant for classification
-# Introducing more noise
+# Removing words that aren't relevant for classification, therefore
+# introducing classification noise.
+# These words may need to be adapted.
 STOP_WORDS=('carte', 'cb', 'du', 'facture', 'paiement')
 
 def read_lines(filename):
