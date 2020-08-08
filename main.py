@@ -8,6 +8,10 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
+# Expected bank extracts CSV format:
+# 1 transcation per line, in the following format:
+# date;<any number of fields describing a transaction>;amount
+
 # Removing words that aren't relevant for classification
 # Introducing more noise
 STOP_WORDS=('carte', 'cb', 'du', 'facture', 'paiement')
