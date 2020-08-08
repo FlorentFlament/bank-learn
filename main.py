@@ -23,38 +23,50 @@ def read_lines(filename):
             l = fd.readline()
     return lines
 
-def split_training_set(training_set):
-    x,y = [],[]
-    for l in training_set:
-        toks = l.split(';')
-        # Keeping all fields but (date, price and category)
-        x.append(";".join(toks[1:-2]))
-        y.append(toks[-1])
-    return x,y
+def cleaned_training_transaction(tr):
+    # Keep all transaction fields except date and price, respectively
+    # at 1st and last position (not using these fields for
+    # categorization).
+    return ';'.join(tr.split(';')[1:-1])
 
 class Corpus:
-    def __predict(self):
-        ## TODO That doesn't need to be performed each time we call __learn
-        x,y = split_training_set(self.__training_set)
+    def __enrich_training_set(self, transaction, category):
+        # Keeping all information to dump into training file
+        self.__training_set_str.append("{};{}".format(transaction,category))
+        # Setting x and y training set vectors
+        self.__training_set_x.append(cleaned_training_transaction(transaction))
+        self.__training_set_y.append(category)
 
+    def __init_training_set(self, training_fname):
+        training_set = read_lines(training_fname)
+        transactions = [";".join(l.split(';')[:-1]) for l in training_set]
+        categories   = [         l.split(';')[-1]   for l in training_set]
+
+        self.__training_set_str = []
+        self.__training_set_x = []
+        self.__training_set_y = []
+        for t,c in zip(transactions, categories):
+            self.__enrich_training_set(t, c)
+
+    def __predict(self):
         # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html
-        self.__text_clf.fit(x, y)
+        self.__text_clf.fit(self.__training_set_x, self.__training_set_y)
         self.__prediction = self.__text_clf.predict(self.__corpus)
 
-    def __init__(self, training_fname, corpus_fname):
-        self.__training_set = read_lines(training_fname)
+    def __init__(self, training_fname, corpus_fnames):
+        self.__init_training_set(training_fname)
         # Process all corpus files
         self.__corpus = []
         for fname in corpus_fnames:
             self.__corpus.extend(read_lines(fname))
 
-        cv = CountVectorizer(
+        self.__vectorizer = CountVectorizer(
             stop_words=STOP_WORDS,
             token_pattern= '(?u)\\b\\w[a-zA-Z0-9_\\-\\.]+\\b',
             ngram_range=(1,3),
         )
         self.__text_clf = Pipeline([
-            ('vect', cv),
+            ('vect', self.__vectorizer),
             ('clf', MultinomialNB()),
         ])
         self.__predict()
@@ -69,8 +81,8 @@ class Corpus:
 
     def c_save_training(self, filename):
         with open(filename, "w") as fd:
-            for ln in self.__training_set:
-                fd.write("{}\n".format(ln))
+            fd.write("\n".join(self.__training_set_str))
+            fd.write("\n")
 
     def c_overview(self):
         vals = [float(s.split(';')[-1].replace(' ','')) for s in self.__corpus]
@@ -91,9 +103,9 @@ class Corpus:
             # TODO Use dictionary to fetch item index
             print("{:<5} {}".format(self.__corpus.index(item), item))
 
-    def c_categorize(self, item_id, category):
-        item = self.__corpus[item_id]
-        self.__training_set.append(';'.join([item, category]))
+    def c_categorize(self, transaction_id, category):
+        transaction = self.__corpus[transaction_id]
+        self.__enrich_training_set(transaction, category)
         self.__predict()
 
 
