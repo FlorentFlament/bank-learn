@@ -49,10 +49,24 @@ class Corpus:
         for t,c in zip(transactions, categories):
             self.__enrich_training_set(t, c)
 
+    def __update_state(self):
+        self.__categories = {}
+        for x,y in zip(self.__corpus, self.__prediction):
+            c = self.__categories.setdefault(y, [])
+            c.append(x)
+
+        self.__overview = []
+        for cat,transacs in self.__categories.items():
+            count  = len(transacs)
+            amount = sum([float(v.split(';')[-1].replace(' ','')) for v in transacs])
+            self.__overview.append((amount, count, cat))
+            self.__overview.sort()
+
     def __predict(self):
         # https://scikit-learn.org/stable/tutorial/text_analytics/working_with_text_data.html
         self.__text_clf.fit(self.__training_set_x, self.__training_set_y)
         self.__prediction = self.__text_clf.predict(self.__corpus)
+        self.__update_state()
 
     def __init__(self, training_fname, corpus_fnames):
         self.__init_training_set(training_fname)
@@ -86,22 +100,12 @@ class Corpus:
             fd.write("\n")
 
     def c_overview(self):
-        vals = [float(s.split(';')[-1].replace(' ','')) for s in self.__corpus]
-        total = {}
-        count = {}
-        for x,y in zip(vals, self.__prediction):
-            total[y] = total.get(y, 0) + x
-            count[y] = count.get(y, 0) + 1
-        for c,v in sorted(total.items(), key=lambda x:x[1]):
-            print("{:<10} {:<4} {}".format(round(v,2), count[c], c))
+        for amount, count, category in self.__overview:
+            print("{:<10} {:<4} {}".format(round(amount,2), count, category))
 
     def c_list_category(self, category):
-        percat = {}
-        for x,y in zip(self.__corpus, self.__prediction):
-            c = percat.setdefault(y, [])
-            c.append(x)
-        for item in percat[category]:
-            # TODO Use dictionary to fetch item index
+        for item in self.__categories[category]:
+            # When this becomes too slow, we should use a dictionary to fetch item indexes
             print("{:<5} {}".format(self.__corpus.index(item), item))
 
     def c_categorize(self, transaction_id, category):
