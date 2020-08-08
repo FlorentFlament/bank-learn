@@ -108,6 +108,16 @@ class Corpus:
         self.__enrich_training_set(transaction, category)
         self.__predict()
 
+    def c_debug(self):
+        print('\n***** Feature names *****')
+        print(self.__vectorizer.get_feature_names())
+        print('\n***** Training set str *****')
+        print(self.__training_set_str)
+        print('\n***** Training set x *****')
+        print(self.__training_set_x)
+        print('\n***** Training set y *****')
+        print(self.__training_set_y)
+
 
 def help():
     msg="""h                    Display this help message
@@ -158,6 +168,8 @@ while cmd != 'q':
         out_fname = ln[1]
         print("*** Saving training file to {}".format(out_fname))
         corp.c_save_training(out_fname)
+    elif cmd == 'd':
+        corp.c_debug()
     elif cmd == 'h':
         print("*** Help")
         help()
