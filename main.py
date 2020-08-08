@@ -43,7 +43,10 @@ class Corpus:
 
     def __init__(self, training_fname, corpus_fname):
         self.__training_set = read_lines(training_fname)
-        self.__corpus = read_lines(corpus_fname)
+        # Process all corpus files
+        self.__corpus = []
+        for fname in corpus_fnames:
+            self.__corpus.extend(read_lines(fname))
 
         cv = CountVectorizer(
             stop_words=STOP_WORDS,
@@ -105,9 +108,9 @@ q                    Quit"""
     print(msg)
 
 training_fname = sys.argv[1]
-corpus_fname   = sys.argv[2]
+corpus_fnames  = sys.argv[2:]
 
-corp = Corpus(training_fname, corpus_fname)
+corp = Corpus(training_fname, corpus_fnames)
 cmd = 'o'
 while cmd != 'q':
     if cmd == '':
